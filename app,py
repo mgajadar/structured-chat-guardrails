@@ -1,0 +1,43 @@
+# app.py
+import argparse
+import json
+from typing import Type
+
+from config import validateConfig
+from schemas import ConversationAnalysis
+from structured_client import StructuredChatClient
+
+
+def analyzeMessage(text: str):
+    validateConfig()
+
+    client = StructuredChatClient()
+    modelClass: Type[ConversationAnalysis] = ConversationAnalysis
+
+    print("[app] sending message to structured chat client...")
+    structured, rawJson = client.callStructured(text, modelClass=modelClass)
+
+    print("\n=== structured object (pydantic) ===\n")
+    print(structured)
+
+    print("\n=== structured JSON (pretty) ===\n")
+    print(json.dumps(structured.model_dump(), indent=2, default=str))
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Structured output chat with JSON validation (CLI)."
+    )
+    parser.add_argument(
+        "--text",
+        type=str,
+        required=True,
+        help="User message or conversation text to analyze.",
+    )
+
+    args = parser.parse_args()
+    analyzeMessage(args.text)
+
+
+if __name__ == "__main__":
+    main()
